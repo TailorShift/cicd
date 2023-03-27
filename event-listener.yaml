@@ -1,0 +1,53 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: github-listener-interceptor
+spec:
+#  serviceAccountName: tekton-triggers-github-sa
+  triggers:
+    - name: github-listener
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: secretToken
+            eventTypes:
+              - push
+#        - cel:
+#            filter: "body.action in ['opened', 'synchronize', 'reopened']"
+      bindings:
+        - kind: ClusterTriggerBinding
+          ref: github-push
+      template:
+        spec:
+          params:
+            - name: git-repo-url
+            - name: git-revision
+          resourcetemplates:
+            - apiVersion: tekton.dev/v1beta1
+              kind: PipelineRun
+              metadata:
+                generateName: github-quarkus-pipeline-
+              spec:
+                pipelineRef:
+                  name: quarkus-pipeline
+                podTemplate:
+                  securityContext:
+                    fsGroup: 65532
+                params:
+                  - name: REPO_URL
+                    value: $(tt.params.git-repo-url)
+                  - name: GIT_REVISION
+                    value: $(tt.params.git-revision)
+                workspaces:
+                  - name: ssh-creds
+                    secret:
+                      secretName: github-deploy-key
+                  - name: app-source
+                    volumeClaimTemplate:
+                      spec:
+                        accessModes:
+                          - ReadWriteOnce
+                        resources:
+                          requests:
+                            storage: 1Gi

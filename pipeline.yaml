@@ -1,0 +1,63 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: quarkus-pipeline
+  namespace: atos-development
+spec:
+  params:
+    - name: REPO_URL
+      type: string
+    - name: GIT_REVISION
+      type: string
+  tasks:
+    - name: git-clone
+      taskRef:
+        kind: ClusterTask
+        name: git-clone-1-8-0
+      params:
+        - name: url
+          value: $(params.REPO_URL)
+        - name: revision
+          value: $(params.GIT_REVISION)
+        - name: sslVerify
+          value: 'false'
+        - name: noProxy
+          value: 'true'
+      workspaces:
+        - name: ssh-directory
+          workspace: ssh-creds
+        - name: output
+          workspace: app-source
+    - name: run-test-cases
+      params:
+        - name: GOALS
+          value:
+            - clean
+            - test
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: ClusterTask
+        name: maven
+      workspaces:
+        - name: source
+          workspace: app-source
+    - name: container-build-and-push
+      taskRef:
+        kind: ClusterTask
+        name: maven
+      params:
+        - name: GOALS
+          value:
+            - '-DskipTests'
+            - package
+            - '-Dquarkus.container-image.build=true'
+            - '-Dquarkus.container-image.push=true'
+      runAfter:
+        - run-test-cases
+      workspaces:
+        - name: source
+          workspace: app-source
+  workspaces:
+    - name: ssh-creds
+    - name: app-source

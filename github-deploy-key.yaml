@@ -1,0 +1,11 @@
+#kind: Secret
+#apiVersion: v1
+#metadata:
+#  name: github-deploy-key
+#  namespace: atos-development
+#data:
+#  id_rsa: >-
+#    YOUR PRIVATE KEY HERE
+#  id_rsa.pub: >-
+#    YOUR PUBLIC KEY HERE (put this into the Github deploy key)
+#type: Opaque
