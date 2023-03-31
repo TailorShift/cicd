@@ -45,9 +45,6 @@ spec:
                   - name: GIT_REVISION
                     value: $(tt.params.git-revision)
                 workspaces:
-                  - name: ssh-creds
-                    secret:
-                      secretName: github-deploy-key
                   - name: app-source
                     volumeClaimTemplate:
                       spec:
