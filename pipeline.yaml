@@ -40,6 +40,8 @@ spec:
       workspaces:
         - name: source
           workspace: app-source
+        - name: maven-settings
+          workspace: maven-settings
     - name: container-build-and-push
       taskRef:
         kind: ClusterTask
@@ -56,5 +58,8 @@ spec:
       workspaces:
         - name: source
           workspace: app-source
+        - name: maven-settings
+          workspace: maven-settings
   workspaces:
     - name: app-source
+    - name: maven-settings
