@@ -27,6 +27,7 @@ spec:
         spec:
           params:
             - name: git-repo-url
+            - name: git-repo-name
             - name: git-revision
           resourcetemplates:
             - apiVersion: tekton.dev/v1beta1
@@ -42,6 +43,8 @@ spec:
                 params:
                   - name: REPO_URL
                     value: $(tt.params.git-repo-url)
+                  - name: REPO_NAME
+                    value: $(tt.params.git-repo-name)
                   - name: GIT_REVISION
                     value: $(tt.params.git-revision)
                 workspaces:

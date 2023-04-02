@@ -7,6 +7,8 @@ spec:
   params:
     - name: REPO_URL
       type: string
+    - name: REPO_NAME
+      type: string
     - name: GIT_REVISION
       type: string
   tasks:
@@ -42,7 +44,7 @@ spec:
           workspace: app-source
         - name: maven-settings
           workspace: maven-settings
-    - name: container-build-and-push
+    - name: application-build
       taskRef:
         kind: ClusterTask
         name: maven
@@ -51,8 +53,6 @@ spec:
           value:
             - '-DskipTests'
             - package
-            - '-Dquarkus.container-image.build=true'
-            - '-Dquarkus.container-image.push=true'
       runAfter:
         - run-test-cases
       workspaces:
@@ -60,6 +60,22 @@ spec:
           workspace: app-source
         - name: maven-settings
           workspace: maven-settings
+    - name: docker-build-and-push
+      taskRef:
+        kind: Task
+        name: buildah
+      params:
+        - name: IMAGE
+          value: "quay.io/tailorshift/$(params.REPO_NAME):main"
+        - name: DOCKERFILE
+          value: 'src/main/docker/Dockerfile.jvm'
+        - name: SKIP_PUSH
+          value: 'true'
+      runAfter:
+        - application-build
+      workspaces:
+        - name: source
+          workspace: app-source
   workspaces:
     - name: app-source
     - name: maven-settings
